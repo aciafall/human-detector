@@ -3,7 +3,7 @@ from skimage.transform import pyramid_gaussian
 from imutils.object_detection import non_max_suppression
 import imutils
 from skimage.feature import hog
-from sklearn.externals import joblib
+import joblib
 import cv2
 from config import *
 from skimage import color
@@ -22,12 +22,12 @@ def sliding_window(image, window_size, step_size):
     image - Input image
     window_size - Size of Sliding Window 
     step_size - incremented Size of Window
-
+·
     The function returns a tuple -
     (x, y, im_window)
     '''
-    for y in xrange(0, image.shape[0], step_size[1]):
-        for x in xrange(0, image.shape[1], step_size[0]):
+    for y in range(0, image.shape[0], step_size[1]):
+        for x in range(0, image.shape[1], step_size[0]):
             yield (x, y, image[y: y + window_size[1], x: x + window_size[0]])
 
 def detector(filename):
@@ -37,7 +37,7 @@ def detector(filename):
     step_size = (10, 10)
     downscale = 1.25
 
-    clf = joblib.load(os.path.join(model_path, 'svm.model'))
+    clf = joblib.load("../data/modelsTest/svm.pkl")
 
     #List to store the detections
     detections = []
@@ -52,7 +52,7 @@ def detector(filename):
             if im_window.shape[0] != min_wdw_sz[1] or im_window.shape[1] != min_wdw_sz[0]:
                 continue
             im_window = color.rgb2gray(im_window)
-            fd = hog(im_window, orientations, pixels_per_cell, cells_per_block, visualize, normalize)
+            fd = hog(im_window, orientations, pixels_per_cell, cells_per_block)
 
             fd = fd.reshape(1, -1)
             pred = clf.predict(fd)
@@ -71,18 +71,18 @@ def detector(filename):
     clone = im.copy()
 
     for (x_tl, y_tl, _, w, h) in detections:
-        cv2.rectangle(im, (x_tl, y_tl), (x_tl + w, y_tl + h), (0, 255, 0), thickness = 2)
+        cv2.rectangle(im, (x_tl, y_tl), (x_tl + w, y_tl + h), (0, 255, 0), thickness=2)
 
     rects = np.array([[x, y, x + w, y + h] for (x, y, _, w, h) in detections])
     sc = [score[0] for (x, y, score, w, h) in detections]
-    print "sc: ", sc
+    print("sc: ", sc)
     sc = np.array(sc)
-    pick = non_max_suppression(rects, probs = sc, overlapThresh = 0.3)
-    print "shape, ", pick.shape
+    pick = non_max_suppression(rects, probs=sc, overlapThresh=0.3)
+    print("shape, ", pick.shape)
 
-    for(xA, yA, xB, yB) in pick:
+    for (xA, yA, xB, yB) in pick:
         cv2.rectangle(clone, (xA, yA), (xB, yB), (0, 255, 0), 2)
-    
+
     plt.axis("off")
     plt.imshow(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
     plt.title("Raw Detection before NMS")

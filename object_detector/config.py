@@ -9,5 +9,5 @@ visualize = False
 normalize = True
 pos_feat_ph = '../data/features/pos'
 neg_feat_ph = '../data/features/neg'
-model_path = '../data/models/'
+model_path = '../data/modelsTest/'
 threshold = .3
